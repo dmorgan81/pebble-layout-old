@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include <@smallstoneapps/linked-list/linked-list.h>
 #include "stack.h"
+#include "dict.h"
 #include "jsmn.h"
 #include "string.h"
 #include "logging.h"
@@ -9,12 +10,7 @@
 struct Layout {
     Layer *root;
     Stack *layers;
-    LinkedRoot *ids;
-};
-
-struct LayerId {
-    Layer *layer;
-    char *id;
+    Dict *ids;
 };
 
 struct LayerData {
@@ -33,7 +29,7 @@ static void json_log(const char *json, jsmntok_t *token) {
     logf();
     if (token->type == JSMN_STRING || token->type == JSMN_PRIMITIVE) {
         char *s = strndup(json + token->start, token->end - token->start);
-        if (token->type == JSMN_STRING) logd("\"%s\"", s); else logi("%s", s);
+        if (token->type == JSMN_STRING) logd("\"%s\"", s); else logd("%s", s);
         free(s);
     } else if (token->type == JSMN_OBJECT) {
         logd("{ %d }", token->size);
@@ -116,10 +112,8 @@ static Layer *json_layer(const char *json, jsmntok_t **token, Layout *layout) {
             layer_set_clips(layer, !json_eq(json, *token, "false"));
         } else if (json_eq(json, *token, "id")) {
             *token += 1;
-            struct LayerId *layer_id = malloc(sizeof(struct LayerId));
-            layer_id->layer = layer;
-            layer_id->id = strndup(json + (*token)->start, (*token)->end - (*token)->start);
-            linked_list_append(layout->ids, layer_id);
+            char *id = strndup(json + (*token)->start, (*token)->end - (*token)->start);
+            dict_put(layout->ids, id, layer);
         }
     }
 
@@ -130,7 +124,7 @@ Layout *layout_create_with_resource(uint32_t resource_id) {
     logf();
     Layout *this = malloc(sizeof(Layout));
     this->layers = stack_create();
-    this->ids = linked_list_create_root();
+    this->ids = dict_create();
 
     ResHandle res_handle = resource_get_handle(resource_id);
     size_t res_size = resource_size(res_handle);
@@ -162,19 +156,17 @@ cleanup:
     return this;
 }
 
-static bool prv_ids_destroy_callback(void *object, void *context) {
+static bool prv_ids_destroy_callback(char *key, void *value, void *context) {
     logf();
-    struct LayerId *layer_id = (struct LayerId *) object;
-    free(layer_id->id);
-    free(layer_id);
+    free(key);
+    key = NULL;
     return true;
 }
 
 void layout_destroy(Layout *this) {
     logf();
-    linked_list_foreach(this->ids, prv_ids_destroy_callback, NULL);
-    linked_list_clear(this->ids);
-    free(this->ids);
+    dict_foreach(this->ids, prv_ids_destroy_callback, NULL);
+    dict_destroy(this->ids);
     this->ids = NULL;
 
     Layer *layer = NULL;
@@ -193,17 +185,7 @@ void layout_add_to_window(Layout *this, Window *window) {
     layer_add_child(window_get_root_layer(window), this->root);
 }
 
-static bool prv_find_by_id_callback(void *object1, void *object2) {
-    logf();
-    char *s = (char *) object1;
-    struct LayerId *layer_id = (struct LayerId *) object2;
-    return strcmp(s, layer_id->id) == 0;
-}
-
 Layer *layout_find_by_id(Layout *this, char *id) {
     logf();
-    int16_t index = linked_list_find_compare(this->ids, id, prv_find_by_id_callback);
-    if (index < 0) return NULL;
-    struct LayerId *layer_id = (struct LayerId *) linked_list_get(this->ids, index);
-    return layer_id->layer;
+    return (Layer *) dict_get(this->ids, id);
 }
