@@ -4,7 +4,6 @@
         {
             "frame": [10, 40, 50, 80],
             "background": "#FF0000",
-            "clips": false,
             "layers": [
                 {
                     "frame": [30, 10, 30, 30],

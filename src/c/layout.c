@@ -8,7 +8,13 @@
 
 struct Layout {
     Layer *root;
-    Stack *layers;    
+    Stack *layers;
+    LinkedRoot *ids;
+};
+
+struct LayerId {
+    Layer *layer;
+    char *id;
 };
 
 struct LayerData {
@@ -108,6 +114,12 @@ static Layer *json_layer(const char *json, jsmntok_t **token, Layout *layout) {
         } else if (json_eq(json, *token, "clips")) {
             *token += 1;
             layer_set_clips(layer, !json_eq(json, *token, "false"));
+        } else if (json_eq(json, *token, "id")) {
+            *token += 1;
+            struct LayerId *layer_id = malloc(sizeof(struct LayerId));
+            layer_id->layer = layer;
+            layer_id->id = strndup(json + (*token)->start, (*token)->end - (*token)->start);
+            linked_list_append(layout->ids, layer_id);
         }
     }
 
@@ -118,6 +130,7 @@ Layout *layout_create_with_resource(uint32_t resource_id) {
     logf();
     Layout *this = malloc(sizeof(Layout));
     this->layers = stack_create();
+    this->ids = linked_list_create_root();
 
     ResHandle res_handle = resource_get_handle(resource_id);
     size_t res_size = resource_size(res_handle);
@@ -149,8 +162,21 @@ cleanup:
     return this;
 }
 
+static bool prv_ids_destroy_callback(void *object, void *context) {
+    logf();
+    struct LayerId *layer_id = (struct LayerId *) object;
+    free(layer_id->id);
+    free(layer_id);
+    return true;
+}
+
 void layout_destroy(Layout *this) {
     logf();
+    linked_list_foreach(this->ids, prv_ids_destroy_callback, NULL);
+    linked_list_clear(this->ids);
+    free(this->ids);
+    this->ids = NULL;
+
     Layer *layer = NULL;
     while ((layer = stack_pop(this->layers)) != NULL) {
         layer_destroy(layer);
@@ -165,4 +191,19 @@ void layout_destroy(Layout *this) {
 void layout_add_to_window(Layout *this, Window *window) {
     logf();
     layer_add_child(window_get_root_layer(window), this->root);
+}
+
+static bool prv_find_by_id_callback(void *object1, void *object2) {
+    logf();
+    char *s = (char *) object1;
+    struct LayerId *layer_id = (struct LayerId *) object2;
+    return strcmp(s, layer_id->id) == 0;
+}
+
+Layer *layout_find_by_id(Layout *this, char *id) {
+    logf();
+    int16_t index = linked_list_find_compare(this->ids, id, prv_find_by_id_callback);
+    if (index < 0) return NULL;
+    struct LayerId *layer_id = (struct LayerId *) linked_list_get(this->ids, index);
+    return layer_id->layer;
 }
