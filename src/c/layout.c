@@ -179,9 +179,9 @@ void layout_destroy(Layout *this) {
     free(this);
 }
 
-void layout_add_to_window(Layout *this, Window *window) {
+void layout_add_to_layer(Layout *this, Layer *layer) {
     logf();
-    layer_add_child(window_get_root_layer(window), this->root);
+    layer_add_child(layer, this->root);
 }
 
 Layer *layout_find_by_id(Layout *this, char *id) {

@@ -56,7 +56,7 @@ static bool prv_find_by_key_callback(void *object1, void *object2) {
 
 bool dict_contains(Dict *this, char *key) {
     logf();
-    if (!this->entries) return NULL;
+    if (!this->entries) return false;
     return linked_list_find_compare(this->entries, key, prv_find_by_key_callback) >= 0;
 }
 
