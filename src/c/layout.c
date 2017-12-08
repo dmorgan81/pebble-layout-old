@@ -136,9 +136,8 @@ Layout *layout_create_with_resource(uint32_t resource_id) {
 
     int count = jsmn_parse(&parser, json, strlen(json), NULL, 0);
     jsmn_init(&parser);
-    jsmntok_t *tokens = calloc(sizeof(jsmntok_t), count + 1);
+    jsmntok_t *tokens = malloc(sizeof(jsmntok_t) * count);
     count = jsmn_parse(&parser, json, strlen(json), tokens, count);
-    tokens[count].type = JSMN_UNDEFINED;
 
     jsmntok_t *token = tokens;
     if (token->type != JSMN_OBJECT) goto cleanup;
