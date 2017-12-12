@@ -11,6 +11,7 @@ struct Layout {
     Layer *root;
     Stack *layers;
     Dict *ids;
+    Dict *types;
 };
 
 struct LayerData {
@@ -26,18 +27,7 @@ static void prv_update_proc(Layer *layer, GContext *ctx) {
     }
 }
 
-static inline GRect json_grect(Json *json, jsmntok_t *tok) {
-    logf();
-    if (tok->type != JSMN_ARRAY) return GRectZero;
-
-    int16_t values[4];
-    for (uint i = 0; i < ARRAY_LENGTH(values); i++) {
-        values[i] = json_next_int(json);
-    }
-    return GRect(values[0], values[1], values[2], values[3]);
-}
-
-static Layer *json_layer(Layout *layout, Json *json) {
+static Layer *json_create_layer(Layout *layout, Json *json) {
     logf();
     jsmntok_t *tok = json_next(json);
     if (tok->type != JSMN_OBJECT) return NULL;
@@ -52,25 +42,24 @@ static Layer *json_layer(Layout *layout, Json *json) {
     for (int i = 0; i < size; i++) {
         tok = json_next(json);
         if (json_eq(json, tok, "frame")) {
-            tok = json_next(json);
-            GRect frame = json_grect(json, tok);
+            GRect frame = json_next_grect(json);
             layer_set_frame(layer, frame);
         } else if (json_eq(json, tok, "background")) {
-            char *s = json_next_string(json);
-            data->color = GColorFromHEX(strtoul(s + (s[0] == '#' ? 1 : 0), NULL, 16));
-            free(s);
+            data->color = json_next_gcolor(json);
         } else if (json_eq(json, tok, "layers")) {
             tok = json_next(json);
             int nsize = tok->size;
             for (int j = 0; j < nsize; j++) {
-                Layer *child = json_layer(layout, json);
-                if (child != NULL) layer_add_child(layer, child);
+                Layer *child = json_create_layer(layout, json);
+                if (child) layer_add_child(layer, child);
             }
         } else if (json_eq(json, tok, "clips")) {
             layer_set_clips(layer, json_next_bool(json));
         } else if (json_eq(json, tok, "id")) {
             char *id = json_next_string(json);
             dict_put(layout->ids, id, layer);
+        } else {
+            json_skip_tree(json);
         }
     }
 
@@ -91,7 +80,7 @@ Layout *layout_create_with_resource(uint32_t resource_id) {
     if (token->type != JSMN_OBJECT) goto cleanup;
     json_reset(json);
 
-    this->root = json_layer(this, json);
+    this->root = json_create_layer(this, json);
     GRect frame = layer_get_frame(this->root);
     if (grect_equal(&frame, &GRectZero)) {
         layer_set_frame(this->root, GRect(0, 0, PBL_DISPLAY_WIDTH, PBL_DISPLAY_HEIGHT));

@@ -80,6 +80,35 @@ bool json_next_bool(Json *this) {
            strncmp(this->buf + tok->start, "true", tok->end - tok->start) == 0;
 }
 
+GRect json_next_grect(Json *this) {
+    logf();
+    jsmntok_t *tok = json_next(this);
+    if (tok->type != JSMN_ARRAY) return GRectZero;
+
+    int16_t values[4];
+    for (uint i = 0; i < ARRAY_LENGTH(values); i++) {
+        values[i] = json_next_int(this);
+    }
+    return GRect(values[0], values[1], values[2], values[3]);
+}
+
+GColor json_next_gcolor(Json *this) {
+    logf();
+    char *s = json_next_string(this);
+    GColor color = GColorFromHEX(strtoul(s + (s[0] == '#' ? 1 : 0), NULL, 16));
+    free(s);
+    return color;
+}
+
+void json_skip_tree(Json *this) {
+    logf();
+    jsmntok_t *tok = json_next(this);
+    if (tok->type == JSMN_ARRAY || tok->type == JSMN_OBJECT) {
+        int size = tok->size;
+        for (int i = 0; i < size; i++) json_skip_tree(this);
+    }
+}
+
 void json_mark(Json *this) {
     logf();
     this->mark = this->index;
