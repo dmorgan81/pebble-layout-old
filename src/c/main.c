@@ -7,8 +7,9 @@ static Layout *s_layout;
 
 static void prv_window_load(Window *window) {
     logf();
-    s_layout = layout_create_with_resource(RESOURCE_ID_LAYOUT);
-    layout_add_to_layer(s_layout, window_get_root_layer(window));
+    s_layout = layout_create();
+    layout_parse(s_layout, RESOURCE_ID_LAYOUT);
+    layer_add_child(window_get_root_layer(window), layout_get_root_layer(s_layout));
 }
 
 static void prv_window_unload(Window *window) {

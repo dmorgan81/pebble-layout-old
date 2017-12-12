@@ -109,14 +109,14 @@ void json_skip_tree(Json *this) {
     }
 }
 
-void json_mark(Json *this) {
+int16_t json_get_index(Json *this) {
     logf();
-    this->mark = this->index;
+    return this->index;
 }
 
-void json_reset(Json *this) {
+void json_set_index(Json *this, int16_t index) {
     logf();
-    if (this->mark > -1) this->index = this->mark;
+    this->index = index;
 }
 
 bool json_eq(Json *this, jsmntok_t *tok, const char *s) {

@@ -14,6 +14,6 @@ bool json_next_bool(Json *this);
 GRect json_next_grect(Json *this);
 GColor json_next_gcolor(Json *this);
 void json_skip_tree(Json *this);
-void json_mark(Json *this);
-void json_reset(Json *this);
+int16_t json_get_index(Json *this);
+void json_set_index(Json *this, int16_t index);
 bool json_eq(Json *this, jsmntok_t *tok, const char *s);
