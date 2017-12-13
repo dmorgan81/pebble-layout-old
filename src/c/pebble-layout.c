@@ -70,14 +70,17 @@ static void *prv_default_create(Layout *layout, Json *json, jsmntok_t *tok) {
 }
 
 static void prv_default_destroy(void *object) {
+    logf();
     layer_destroy((Layer *) object);
 }
 
 static Layer *prv_default_get_layer(void *object) {
+    logf();
     return (Layer *) object;
 }
 
 static void prv_default_set_frame(void *object, GRect frame) {
+    logf();
     layer_set_frame((Layer *) object, frame);
 }
 
@@ -128,6 +131,7 @@ static Layer *json_create_layer(Layout *layout, Json *json) {
 }
 
 Layout *layout_create(void) {
+    logf();
     Layout *this = malloc(sizeof(Layout));
     this->root = NULL;
     this->layers = stack_create();
@@ -146,6 +150,7 @@ Layout *layout_create(void) {
 }
 
 void layout_add_standard_types(Layout *this) {
+    logf();
     standard_types_add(this);
 }
 
