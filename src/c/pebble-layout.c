@@ -13,6 +13,7 @@ struct Layout {
     Dict *ids;
     Dict *types;
     Dict *fonts;
+    Dict *resource_ids;
 };
 
 struct LayerData {
@@ -138,6 +139,7 @@ Layout *layout_create(void) {
     this->ids = dict_create();
     this->types = dict_create();
     this->fonts = dict_create();
+    this->resource_ids = dict_create();
 
     layout_add_type(this, "default", (LayoutFuncs) {
         .create = prv_default_create,
@@ -183,13 +185,13 @@ static bool prv_fonts_destroy_callback(char *key, void *value, void *context) {
     return true;
 }
 
-static bool prv_types_destroy_callback(char *key, void *value, void *context) {
+static bool prv_value_destroy_callback(char *key, void *value, void *context) {
     logf();
     free(value);
     return true;
 }
 
-static bool prv_ids_destroy_callback(char *key, void *value, void *context) {
+static bool prv_key_destroy_callback(char *key, void *value, void *context) {
     logf();
     free(key);
     return true;
@@ -197,15 +199,19 @@ static bool prv_ids_destroy_callback(char *key, void *value, void *context) {
 
 void layout_destroy(Layout *this) {
     logf();
+    dict_foreach(this->resource_ids, prv_value_destroy_callback, NULL);
+    dict_destroy(this->resource_ids);
+    this->resource_ids = NULL;
+
     dict_foreach(this->fonts, prv_fonts_destroy_callback, NULL);
     dict_destroy(this->fonts);
     this->fonts = NULL;
 
-    dict_foreach(this->types, prv_types_destroy_callback, NULL);
+    dict_foreach(this->types, prv_value_destroy_callback, NULL);
     dict_destroy(this->types);
     this->types = NULL;
 
-    dict_foreach(this->ids, prv_ids_destroy_callback, NULL);
+    dict_foreach(this->ids, prv_key_destroy_callback, NULL);
     dict_destroy(this->ids);
     this->ids = NULL;
 
@@ -250,6 +256,18 @@ GFont layout_get_font(Layout *this, char *name) {
     logf();
     FontInfo *font_info = dict_get(this->fonts, name);
     return font_info ? font_info->font : NULL;
+}
+
+void layout_add_resource_id(Layout *this, char *name, uint32_t resource_id) {
+    logf();
+    uint32_t *rid = malloc(sizeof(uint32_t));
+    memcpy(rid, &resource_id, sizeof(uint32_t));
+    dict_put(this->resource_ids, name, rid);
+}
+
+uint32_t *layout_get_resource_id(Layout *this, char *name) {
+    logf();
+    return dict_get(this->resource_ids, name);
 }
 
 static void prv_add_system_font(Layout *this, char *name, char *font_key) {

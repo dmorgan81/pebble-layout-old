@@ -27,3 +27,5 @@ void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs);
 void layout_add_system_fonts(Layout *this);
 void layout_add_font(Layout *this, char *name, GFont font);
 GFont layout_get_font(Layout* this, char *name);
+void layout_add_resource_id(Layout *this, char *name, uint32_t resource_id);
+uint32_t *layout_get_resource_id(Layout *this, char *name);
