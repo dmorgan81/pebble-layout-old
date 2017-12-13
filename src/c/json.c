@@ -103,9 +103,15 @@ GColor json_next_gcolor(Json *this) {
 void json_skip_tree(Json *this) {
     logf();
     jsmntok_t *tok = json_next(this);
-    if (tok->type == JSMN_ARRAY || tok->type == JSMN_OBJECT) {
+    if (tok->type == JSMN_ARRAY) {
         int size = tok->size;
         for (int i = 0; i < size; i++) json_skip_tree(this);
+    } else if (tok->type == JSMN_OBJECT) {
+        int size = tok->size;
+        for (int i = 0; i < size; i++) {
+            tok = json_next(this);
+            json_skip_tree(this);
+        }
     }
 }
 
