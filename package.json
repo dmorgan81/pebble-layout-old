@@ -1,37 +1,27 @@
 {
-  "name": "layout",
-  "author": "MakeAwesomeHappen",
+  "name": "pebble-layout",
+  "author": "David Morgan",
   "version": "1.0.0",
-  "keywords": [
-    "pebble-app"
+  "files": [
+    "dist.zip"
   ],
-  "private": true,
+  "keywords": [
+    "pebble-package"
+  ],
   "dependencies": {
     "@smallstoneapps/linked-list": "^1.4.0"
   },
   "pebble": {
-    "displayName": "Layout",
-    "uuid": "07f4f33d-6fc5-4ff7-bd9f-6ac5d6702e18",
+    "projectType": "package",
     "sdkVersion": "3",
-    "enableMultiJS": true,
     "targetPlatforms": [
       "aplite",
       "basalt",
       "chalk",
       "diorite"
     ],
-    "watchapp": {
-      "watchface": false
-    },
-    "messageKeys": [],
     "resources": {
-      "media": [
-        {
-          "type": "raw",
-          "name": "LAYOUT",
-          "file": "layout.json"
-        }
-      ]
+      "media": []
     }
   }
 }

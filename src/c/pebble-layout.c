@@ -1,11 +1,10 @@
 #include <pebble.h>
-#include <@smallstoneapps/linked-list/linked-list.h>
 #include "stack.h"
 #include "dict.h"
 #include "jsmn.h"
 #include "json.h"
 #include "logging.h"
-#include "layout.h"
+#include "pebble-layout.h"
 
 struct Layout {
     Layer *root;
