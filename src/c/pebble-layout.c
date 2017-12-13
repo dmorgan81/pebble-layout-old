@@ -3,6 +3,7 @@
 #include "dict.h"
 #include "jsmn.h"
 #include "json.h"
+#include "standard-types.h"
 #include "logging.h"
 #include "pebble-layout.h"
 
@@ -11,6 +12,7 @@ struct Layout {
     Stack *layers;
     Dict *ids;
     Dict *types;
+    Dict *fonts;
 };
 
 struct LayerData {
@@ -20,6 +22,11 @@ struct LayerData {
 
 struct DefaultLayerData {
     GColor color;
+};
+
+struct FontInfo {
+    GFont font;
+    bool system;
 };
 
 static void prv_update_proc(Layer *layer, GContext *ctx) {
@@ -126,6 +133,7 @@ Layout *layout_create(void) {
     this->layers = stack_create();
     this->ids = dict_create();
     this->types = dict_create();
+    this->fonts = dict_create();
 
     layout_add_type(this, "default", (LayoutFuncs) {
         .create = prv_default_create,
@@ -135,6 +143,10 @@ Layout *layout_create(void) {
     });
 
     return this;
+}
+
+void layout_add_standard_types(Layout *this) {
+    standard_types_add(this);
 }
 
 void layout_parse(Layout *this, uint32_t resource_id) {
@@ -157,22 +169,33 @@ cleanup:
     json_destroy(json);
 }
 
+static bool prv_fonts_destroy_callback(char *key, void *value, void *context) {
+    logf();
+    FontInfo *font_info = (FontInfo *) value;
+    if (!font_info->system) fonts_unload_custom_font(font_info->font);
+    font_info->font = NULL;
+    free(font_info);
+    return true;
+}
+
 static bool prv_types_destroy_callback(char *key, void *value, void *context) {
     logf();
     free(value);
-    value = NULL;
     return true;
 }
 
 static bool prv_ids_destroy_callback(char *key, void *value, void *context) {
     logf();
     free(key);
-    key = NULL;
     return true;
 }
 
 void layout_destroy(Layout *this) {
     logf();
+    dict_foreach(this->fonts, prv_fonts_destroy_callback, NULL);
+    dict_destroy(this->fonts);
+    this->fonts = NULL;
+
     dict_foreach(this->types, prv_types_destroy_callback, NULL);
     dict_destroy(this->types);
     this->types = NULL;
@@ -208,4 +231,56 @@ void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs) {
     LayoutFuncs *copy = malloc(sizeof(LayoutFuncs));
     memcpy(copy, &layout_funcs, sizeof(LayoutFuncs));
     dict_put(this->types, type, copy);
+}
+
+void layout_add_font(Layout *this, char *name, GFont font) {
+    logf();
+    FontInfo *font_info = malloc(sizeof(FontInfo));
+    font_info->font = font;
+    font_info->system = false;
+    dict_put(this->fonts, name, font_info);
+}
+
+GFont layout_get_font(Layout *this, char *name) {
+    logf();
+    FontInfo *font_info = dict_get(this->fonts, name);
+    return font_info ? font_info->font : NULL;
+}
+
+static void prv_add_system_font(Layout *this, char *name, char *font_key) {
+    logf();
+    FontInfo *font_info = malloc(sizeof(FontInfo));
+    font_info->font = fonts_get_system_font(font_key);
+    font_info->system = true;
+    dict_put(this->fonts, name, font_info);
+}
+
+void layout_add_system_fonts(Layout *this) {
+    logf();
+    prv_add_system_font(this, "GOTHIC_18_BOLD", FONT_KEY_GOTHIC_18_BOLD);
+    prv_add_system_font(this, "GOTHIC_24", FONT_KEY_GOTHIC_24);
+    prv_add_system_font(this, "GOTHIC_09", FONT_KEY_GOTHIC_09);
+    prv_add_system_font(this, "GOTHIC_14", FONT_KEY_GOTHIC_14);
+    prv_add_system_font(this, "GOTHIC_14_BOLD", FONT_KEY_GOTHIC_14_BOLD);
+    prv_add_system_font(this, "GOTHIC_18", FONT_KEY_GOTHIC_18);
+    prv_add_system_font(this, "GOTHIC_24_BOLD", FONT_KEY_GOTHIC_24_BOLD);
+    prv_add_system_font(this, "GOTHIC_28", FONT_KEY_GOTHIC_28);
+    prv_add_system_font(this, "GOTHIC_28_BOLD", FONT_KEY_GOTHIC_28_BOLD);
+    prv_add_system_font(this, "BITHAM_30_BLACK", FONT_KEY_BITHAM_30_BLACK);
+    prv_add_system_font(this, "BITHAM_42_BOLD", FONT_KEY_BITHAM_42_BOLD);
+    prv_add_system_font(this, "BITHAM_42_LIGHT", FONT_KEY_BITHAM_42_LIGHT);
+    prv_add_system_font(this, "BITHAM_42_MEDIUM_NUMBERS", FONT_KEY_BITHAM_42_MEDIUM_NUMBERS);
+    prv_add_system_font(this, "BITHAM_34_MEDIUM_NUMBERS", FONT_KEY_BITHAM_34_MEDIUM_NUMBERS);
+    prv_add_system_font(this, "BITHAM_34_LIGHT_SUBSET", FONT_KEY_BITHAM_34_LIGHT_SUBSET);
+    prv_add_system_font(this, "BITHAM_18_LIGHT_SUBSET", FONT_KEY_BITHAM_18_LIGHT_SUBSET);
+    prv_add_system_font(this, "ROBOTO_CONDENSED_21", FONT_KEY_ROBOTO_CONDENSED_21);
+    prv_add_system_font(this, "ROBOTO_BOLD_SUBSET_49", FONT_KEY_ROBOTO_BOLD_SUBSET_49);
+    prv_add_system_font(this, "DROID_SERIF_28_BOLD", FONT_KEY_DROID_SERIF_28_BOLD);
+    prv_add_system_font(this, "LECO_20_BOLD_NUMBERS", FONT_KEY_LECO_20_BOLD_NUMBERS);
+    prv_add_system_font(this, "LECO_26_BOLD_NUMBERS_AM_PM", FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM);
+    prv_add_system_font(this, "LECO_32_BOLD_NUMBERS", FONT_KEY_LECO_32_BOLD_NUMBERS);
+    prv_add_system_font(this, "LECO_36_BOLD_NUMBERS", FONT_KEY_LECO_36_BOLD_NUMBERS);
+    prv_add_system_font(this, "LECO_38_BOLD_NUMBERS", FONT_KEY_LECO_38_BOLD_NUMBERS);
+    prv_add_system_font(this, "LECO_42_NUMBERS", FONT_KEY_LECO_42_NUMBERS);
+    prv_add_system_font(this, "LECO_28_LIGHT_NUMBERS", FONT_KEY_LECO_28_LIGHT_NUMBERS);
 }

@@ -18,8 +18,12 @@ typedef struct {
 } LayoutFuncs;
 
 Layout *layout_create(void);
+void layout_add_standard_types(Layout *this);
 void layout_parse(Layout *this, uint32_t resource_id);
 void layout_destroy(Layout *this);
 Layer *layout_get_root_layer(Layout *this);
 Layer *layout_find_by_id(Layout *this, char *id);
 void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs);
+void layout_add_system_fonts(Layout *this);
+void layout_add_font(Layout *this, char *name, GFont font);
+GFont layout_get_font(Layout* this, char *name);

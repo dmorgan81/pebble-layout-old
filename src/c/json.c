@@ -17,9 +17,10 @@ Json *json_create_with_resource(uint32_t resource_id) {
     Json *this = malloc(sizeof(Json));
 
     ResHandle res_handle = resource_get_handle(resource_id);
-    size_t res_size = resource_size(res_handle);
+    size_t res_size = resource_size(res_handle) + 1;
     this->buf = malloc(sizeof(char) * res_size);
     resource_load(res_handle, (uint8_t *) this->buf, res_size);
+    this->buf[res_size] = '\0';
 
     jsmn_parser parser;
     jsmn_init(&parser);
