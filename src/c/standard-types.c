@@ -1,9 +1,10 @@
 #include <pebble.h>
 #include "pebble-layout.h"
+#include "json.h"
 #include "logging.h"
 #include "standard-types.h"
 
-static void *prv_text_create(Layout *this, Json *json, jsmntok_t *tok) {
+static void *prv_text_create(Layout *this, Json *json, JsonToken *tok) {
     logf();
     TextLayer *layer = text_layer_create(GRectZero);
     text_layer_set_background_color(layer, GColorClear);
@@ -69,7 +70,7 @@ static void prv_text_set_frame(void *object, GRect frame) {
     layer_set_frame(text_layer_get_layer(layer), frame);
 }
 
-static void *prv_bitmap_create(Layout *this, Json *json, jsmntok_t *tok) {
+static void *prv_bitmap_create(Layout *this, Json *json, JsonToken *tok) {
     logf();
     BitmapLayer *layer = bitmap_layer_create(GRectZero);
 

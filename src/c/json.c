@@ -6,10 +6,9 @@
 
 struct Json {
     char *buf;
-    jsmntok_t *tokens;
+    JsonToken *tokens;
     int16_t num_tokens;
     int16_t index;
-    int16_t mark;
 };
 
 Json *json_create_with_resource(uint32_t resource_id) {
@@ -27,10 +26,22 @@ Json *json_create_with_resource(uint32_t resource_id) {
 
     int num_tokens = jsmn_parse(&parser, this->buf, strlen(this->buf), NULL, 0);
     jsmn_init(&parser);
-    this->tokens = malloc(sizeof(jsmntok_t) * num_tokens);
-    this->num_tokens = jsmn_parse(&parser, this->buf, strlen(this->buf), this->tokens, num_tokens);
+    jsmntok_t *tokens = malloc(sizeof(jsmntok_t) * num_tokens);
+    this->num_tokens = jsmn_parse(&parser, this->buf, strlen(this->buf), tokens, num_tokens);
     this->index = 0;
-    this->mark = -1;
+
+    this->tokens = malloc(sizeof(JsonToken) * this->num_tokens);
+    for (int i = 0; i < this->num_tokens; i++) {
+        jsmntok_t *tok = &tokens[i];
+        JsonToken *js_tok = &this->tokens[i];
+        js_tok->type = tok->type;
+        js_tok->start = tok->start;
+        js_tok->end = tok->end;
+        js_tok->len = tok->end - tok->start;
+        js_tok->size = tok->size;
+    }
+
+    free(tokens);
 
     return this;
 }
@@ -54,15 +65,15 @@ bool json_has_next(Json *this) {
     return this->tokens != NULL && this->num_tokens > -1 && this->index < this->num_tokens;
 }
 
-jsmntok_t *json_next(Json *this) {
+JsonToken *json_next(Json *this) {
     logf();
     return &this->tokens[this->index++];
 }
 
 char *json_next_string(Json *this) {
     logf();
-    jsmntok_t *tok = json_next(this);
-    return strndup(this->buf + tok->start, tok->end - tok->start);
+    JsonToken *tok = json_next(this);
+    return strndup(this->buf + tok->start, tok->len);
 }
 
 int json_next_int(Json *this) {
@@ -75,16 +86,16 @@ int json_next_int(Json *this) {
 
 bool json_next_bool(Json *this) {
     logf();
-    jsmntok_t *tok = json_next(this);
-    return tok->type == JSMN_PRIMITIVE && \
-           (int) strlen("true") == tok->end - tok->start && \
-           strncmp(this->buf + tok->start, "true", tok->end - tok->start) == 0;
+    JsonToken *tok = json_next(this);
+    return tok->type == JSON_PRIMITIVE && \
+           (int) strlen("true") == tok->len && \
+           strncmp(this->buf + tok->start, "true", tok->len) == 0;
 }
 
 GRect json_next_grect(Json *this) {
     logf();
-    jsmntok_t *tok = json_next(this);
-    if (tok->type != JSMN_ARRAY) return GRectZero;
+    JsonToken *tok = json_next(this);
+    if (tok->type != JSON_ARRAY) return GRectZero;
 
     int16_t values[4];
     for (uint i = 0; i < ARRAY_LENGTH(values); i++) {
@@ -103,11 +114,11 @@ GColor json_next_gcolor(Json *this) {
 
 void json_skip_tree(Json *this) {
     logf();
-    jsmntok_t *tok = json_next(this);
-    if (tok->type == JSMN_ARRAY) {
+    JsonToken *tok = json_next(this);
+    if (tok->type == JSON_ARRAY) {
         int size = tok->size;
         for (int i = 0; i < size; i++) json_skip_tree(this);
-    } else if (tok->type == JSMN_OBJECT) {
+    } else if (tok->type == JSON_OBJECT) {
         int size = tok->size;
         for (int i = 0; i < size; i++) {
             tok = json_next(this);
@@ -126,9 +137,9 @@ void json_set_index(Json *this, int16_t index) {
     this->index = index;
 }
 
-bool json_eq(Json *this, jsmntok_t *tok, const char *s) {
+bool json_eq(Json *this, JsonToken *tok, const char *s) {
     logf();
-    return tok->type == JSMN_STRING && \
-           (int) strlen(s) == tok->end - tok->start && \
-           strncmp(this->buf + tok->start, s, tok->end - tok->start) == 0;
+    return tok->type == JSON_STRING && \
+           (int) strlen(s) == tok->len && \
+           strncmp(this->buf + tok->start, s, tok->len) == 0;
 }

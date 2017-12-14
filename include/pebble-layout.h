@@ -1,11 +1,10 @@
 #pragma once
 #include <pebble.h>
-#include "jsmn.h"
 #include "json.h"
 
 typedef struct Layout Layout;
 
-typedef void* (*LayoutCreateFunc)(Layout *layout, Json *json, jsmntok_t *token);
+typedef void* (*LayoutCreateFunc)(Layout *layout, Json *json, JsonToken *token);
 typedef void (*LayoutDestroyFunc)(void *object);
 typedef Layer* (*LayoutGetLayerFunc)(void *object);
 typedef void (*LayoutSetFrameFunc)(void *object, GRect frame);

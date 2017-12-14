@@ -1,7 +1,6 @@
 #include <pebble.h>
 #include "stack.h"
 #include "dict.h"
-#include "jsmn.h"
 #include "json.h"
 #include "standard-types.h"
 #include "logging.h"
@@ -41,7 +40,7 @@ static void prv_update_proc(Layer *layer, GContext *ctx) {
 
 static Layer *json_create_layer(Layout *layout, Json *json);
 
-static void *prv_default_create(Layout *layout, Json *json, jsmntok_t *tok) {
+static void *prv_default_create(Layout *layout, Json *json, JsonToken *tok) {
     logf();
     Layer *layer = layer_create_with_data(GRectZero, sizeof(struct DefaultLayerData));
     struct DefaultLayerData *data = layer_get_data(layer);
@@ -87,10 +86,10 @@ static void prv_default_set_frame(void *object, GRect frame) {
 
 static Layer *json_create_layer(Layout *layout, Json *json) {
     logf();
-    jsmntok_t *tok = json_next(json);
-    if (tok->type != JSMN_OBJECT) return NULL;
+    JsonToken *tok = json_next(json);
+    if (tok->type != JSON_OBJECT) return NULL;
 
-    jsmntok_t *orig = tok;
+    JsonToken *orig = tok;
     LayoutFuncs *layout_funcs = NULL;
     int size = tok->size;
     int16_t index = json_get_index(json);
@@ -162,8 +161,8 @@ void layout_parse(Layout *this, uint32_t resource_id) {
     if (!json_has_next(json)) goto cleanup;
 
     int16_t index = json_get_index(json);
-    jsmntok_t *token = json_next(json);
-    if (token->type != JSMN_OBJECT) goto cleanup;
+    JsonToken *token = json_next(json);
+    if (token->type != JSON_OBJECT) goto cleanup;
     json_set_index(json, index);
 
     this->root = json_create_layer(this, json);
