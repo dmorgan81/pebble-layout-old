@@ -243,10 +243,10 @@ void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs) {
     dict_put(this->types, type, copy);
 }
 
-void layout_add_font(Layout *this, char *name, GFont font) {
+void layout_add_font(Layout *this, char *name, uint32_t resource_id) {
     logf();
     FontInfo *font_info = malloc(sizeof(FontInfo));
-    font_info->font = font;
+    font_info->font = fonts_load_custom_font(resource_get_handle(resource_id));
     font_info->system = false;
     dict_put(this->fonts, name, font_info);
 }
