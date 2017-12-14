@@ -264,14 +264,14 @@ GFont layout_get_font(Layout *this, char *name) {
     return font_info ? font_info->font : NULL;
 }
 
-void layout_add_resource_id(Layout *this, char *name, uint32_t resource_id) {
+void layout_add_resource(Layout *this, char *name, uint32_t resource_id) {
     logf();
     uint32_t *rid = malloc(sizeof(uint32_t));
     memcpy(rid, &resource_id, sizeof(uint32_t));
     dict_put(this->resource_ids, name, rid);
 }
 
-uint32_t *layout_get_resource_id(Layout *this, char *name) {
+uint32_t *layout_get_resource(Layout *this, char *name) {
     logf();
     return dict_get(this->resource_ids, name);
 }

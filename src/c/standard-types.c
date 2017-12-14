@@ -79,7 +79,7 @@ static void *prv_bitmap_create(Layout *this, Json *json, JsonToken *tok) {
         tok = json_next(json);
         if (json_eq(json, tok, "bitmap")) {
             char *s = json_next_string(json);
-            uint32_t *resource_id = layout_get_resource_id(this, s);
+            uint32_t *resource_id = layout_get_resource(this, s);
             free(s);
             if (resource_id) {
                 GBitmap *bitmap = gbitmap_create_with_resource(*resource_id);
