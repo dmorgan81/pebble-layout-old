@@ -26,6 +26,7 @@ Layout *layout_create(void);
 void layout_add_all_standard_types(Layout *this);
 void layout_add_standard_type(Layout *this, StandardType type);
 void layout_parse(Layout *this, uint32_t resource_id);
+void layout_parse_string(Layout *this, char *json);
 void layout_destroy(Layout *this);
 Layer *layout_get_root_layer(Layout *this);
 void *layout_find_by_id(Layout *this, char *id);

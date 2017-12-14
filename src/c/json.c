@@ -13,21 +13,26 @@ struct Json {
 
 Json *json_create_with_resource(uint32_t resource_id) {
     logf();
-    Json *this = malloc(sizeof(Json));
-
     ResHandle res_handle = resource_get_handle(resource_id);
     size_t res_size = resource_size(res_handle);
-    this->buf = malloc(sizeof(char) * (res_size + 1));
-    resource_load(res_handle, (uint8_t *) this->buf, res_size);
-    this->buf[res_size] = '\0';
+    char *json = malloc(sizeof(char) * (res_size + 1));
+    resource_load(res_handle, (uint8_t *) json, res_size);
+    json[res_size] = '\0';
+    return json_create(json);
+}
+
+Json *json_create(char *s) {
+    logf();
+    Json *this = malloc(sizeof(Json));
+    this->buf = s;
 
     jsmn_parser parser;
     jsmn_init(&parser);
 
-    int num_tokens = jsmn_parse(&parser, this->buf, strlen(this->buf), NULL, 0);
+    int num_tokens = jsmn_parse(&parser, s, strlen(s), NULL, 0);
     jsmn_init(&parser);
     jsmntok_t *tokens = malloc(sizeof(jsmntok_t) * num_tokens);
-    this->num_tokens = jsmn_parse(&parser, this->buf, strlen(this->buf), tokens, num_tokens);
+    this->num_tokens = jsmn_parse(&parser, s, strlen(s), tokens, num_tokens);
     this->index = 0;
 
     this->tokens = malloc(sizeof(JsonToken) * this->num_tokens);

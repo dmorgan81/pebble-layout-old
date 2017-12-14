@@ -162,9 +162,7 @@ void layout_add_standard_type(Layout *this, StandardType type) {
     standard_types_add(this, type);
 }
 
-void layout_parse(Layout *this, uint32_t resource_id) {
-    logf();
-    Json *json = json_create_with_resource(resource_id);
+static void prv_parse(Layout *this, Json *json) {
     if (!json_has_next(json)) goto cleanup;
 
     int16_t index = json_get_index(json);
@@ -180,6 +178,16 @@ void layout_parse(Layout *this, uint32_t resource_id) {
 
 cleanup:
     json_destroy(json);
+}
+
+void layout_parse(Layout *this, uint32_t resource_id) {
+    logf();
+    prv_parse(this, json_create_with_resource(resource_id));
+}
+
+void layout_parse_string(Layout *this, char *json) {
+    logf();
+    prv_parse(this, json_create(json));
 }
 
 static bool prv_fonts_destroy_callback(char *key, void *value, void *context) {

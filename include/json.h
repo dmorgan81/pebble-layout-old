@@ -20,6 +20,7 @@ typedef struct {
 } JsonToken;
 
 Json *json_create_with_resource(uint32_t resource_id);
+Json *json_create(char *s);
 void json_destroy(Json *this);
 bool json_has_next(Json *this);
 JsonToken *json_next(Json *this);
