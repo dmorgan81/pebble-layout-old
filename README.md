@@ -112,19 +112,19 @@ BitmapLayers can have the following properties:
 | `uint32_t *layout_get_resource(Layout *this, char *name)` | Return a previously added resource ID.|
 | `void layout_add_all_standard_types(Layout *this)` | Make all standard types available during parsing.|
 | `void layout_add_standard_type(Layout *this, StandardType type)` | Make the specified standard type available during parsing.|
-| `void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs)` | Add a custom type that can be used during parsing. See the section below on [custom types](#types).|
+| `void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs)` | Add a custom type that can be used during parsing. See the section below on [custom types](#custom-types).|
 
-# Custom types[](#types)
+# Custom types
 
 pebble-layout can be extended by adding custom types before parsing. During parsing any layer with its `type` property set to a string you specify will be constructed/destroyed using the functions you specify.
 
 Adding a type requires implementing four functions:
-* `create`: `void* (Layout *layout, Json *json, JsonToken *token)` - Anything can be returned from this function. The result will be passed around to the other custom type functions so it's a good idea to make it a struct that holds everything you might need. See the section on the [JSON API](#json) for how to use `json` and `token`.
+* `create`: `void* (Layout *layout, Json *json, JsonToken *token)` - Anything can be returned from this function. The result will be passed around to the other custom type functions so it's a good idea to make it a struct that holds everything you might need. See the section on the [JSON API](#json-api) for how to use `json` and `token`.
 * `destroy`: `void (void *object)` - Standard cleanup. Destroy child layers, unload resources, free allocated memory, etc.
 * `get_layer`: `Layer* (void *object)` - Must return a layer to add to the layer heirarchy.
 * `set_frame`: `void (void *object, GRect frame)` - Set the frame of your layer.
 
-# JSON API[](#json)
+# JSON API
 
 pebble-layout includes a simple JSON API that uses [Jsmn](https://github.com/zserge/jsmn) to handle parsing/tokenizing. The API iterates through the JSON structure, converting tokens into types automatically.
 
