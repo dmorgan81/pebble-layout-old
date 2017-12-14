@@ -148,18 +148,25 @@ static void prv_bitmap_set_frame(void *object, GRect frame) {
     layer_set_frame(bitmap_layer_get_layer(layer), frame);
 }
 
-void standard_types_add(Layout *this) {
+void standard_types_add(Layout *this, StandardType type) {
     logf();
-    layout_add_type(this, "TextLayer", (LayoutFuncs) {
-        .create = prv_text_create,
-        .destroy = prv_text_destroy,
-        .get_layer = prv_text_get_layer,
-        .set_frame = prv_text_set_frame
-    });
-    layout_add_type(this, "BitmapLayer", (LayoutFuncs) {
-        .create = prv_bitmap_create,
-        .destroy = prv_bitmap_destroy,
-        .get_layer = prv_bitmap_get_layer,
-        .set_frame = prv_bitmap_set_frame
-    });
+    switch (type) {
+        case StandardTypeText:
+            layout_add_type(this, "TextLayer", (LayoutFuncs) {
+                .create = prv_text_create,
+                .destroy = prv_text_destroy,
+                .get_layer = prv_text_get_layer,
+                .set_frame = prv_text_set_frame
+            });
+            break;
+        case StandardTypeBitmap:
+            layout_add_type(this, "BitmapLayer", (LayoutFuncs) {
+                .create = prv_bitmap_create,
+                .destroy = prv_bitmap_destroy,
+                .get_layer = prv_bitmap_get_layer,
+                .set_frame = prv_bitmap_set_frame
+            });
+            break;
+        default: break;
+    }
 }

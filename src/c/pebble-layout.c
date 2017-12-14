@@ -106,7 +106,7 @@ static Layer *json_create_layer(Layout *layout, Json *json) {
     }
     json_set_index(json, index);
 
-    if (layout_funcs == NULL) layout_funcs = dict_get(layout->types, "default");
+    if (layout_funcs == NULL) layout_funcs = dict_get(layout->types, "Layer");
     index = json_get_index(json);
     struct LayerData *data = malloc(sizeof(struct LayerData));
     data->layout_funcs = layout_funcs;
@@ -140,7 +140,7 @@ Layout *layout_create(void) {
     this->fonts = dict_create();
     this->resource_ids = dict_create();
 
-    layout_add_type(this, "default", (LayoutFuncs) {
+    layout_add_type(this, "Layer", (LayoutFuncs) {
         .create = prv_default_create,
         .destroy = prv_default_destroy,
         .get_layer = prv_default_get_layer,
@@ -150,9 +150,16 @@ Layout *layout_create(void) {
     return this;
 }
 
-void layout_add_standard_types(Layout *this) {
+void layout_add_all_standard_types(Layout *this) {
     logf();
-    standard_types_add(this);
+    for (int i = 0; i < StandardTypeEnd; i++) {
+        standard_types_add(this, i);
+    }
+}
+
+void layout_add_standard_type(Layout *this, StandardType type) {
+    logf();
+    standard_types_add(this, type);
 }
 
 void layout_parse(Layout *this, uint32_t resource_id) {

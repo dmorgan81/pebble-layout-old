@@ -16,8 +16,15 @@ typedef struct {
     LayoutSetFrameFunc set_frame;
 } LayoutFuncs;
 
+typedef enum {
+    StandardTypeText = 1,
+    StandardTypeBitmap,
+    StandardTypeEnd
+} StandardType;
+
 Layout *layout_create(void);
-void layout_add_standard_types(Layout *this);
+void layout_add_all_standard_types(Layout *this);
+void layout_add_standard_type(Layout *this, StandardType type);
 void layout_parse(Layout *this, uint32_t resource_id);
 void layout_destroy(Layout *this);
 Layer *layout_get_root_layer(Layout *this);
