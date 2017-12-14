@@ -231,9 +231,9 @@ Layer *layout_get_root_layer(Layout *this) {
     return this->root;
 }
 
-Layer *layout_find_by_id(Layout *this, char *id) {
+void *layout_find_by_id(Layout *this, char *id) {
     logf();
-    return (Layer *) dict_get(this->ids, id);
+    return dict_get(this->ids, id);
 }
 
 void layout_add_type(Layout *this, char *type, LayoutFuncs layout_funcs) {
